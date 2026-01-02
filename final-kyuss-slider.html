@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SEQ14 – Chaos Hybrid Gunboard</title>
+<style>
+  body {
+    margin: 0; padding: 0;
+    font-family: system-ui, sans-serif;
+    background: #f6f5f7; color: #222;
+  }
+  .page { max-width: 1200px; margin: 0 auto; padding: 24px 16px 40px; }
+  .header {
+    display: flex; flex-wrap: wrap; justify-content: space-between;
+    align-items: center; gap: 12px; margin-bottom: 24px;
+  }
+  .title-block { display: flex; flex-direction: column; gap: 4px; }
+  .title-block h1 {
+    font-size: 20px; letter-spacing: 0.12em;
+    text-transform: uppercase; margin: 0;
+  }
+  .title-block span {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.18em; color: #999;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button {
+    border: none; padding: 8px 16px; border-radius: 999px;
+    background: #111; color: #fff; font-size: 13px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: 0.15s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+  }
+  button:hover { background: #222; transform: translateY(-1px); }
+  .slider-box {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .board {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px; margin-top: 12px;
+  }
+  .card {
+    background: #fff; border-radius: 18px; padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 10px 20px rgba(15,15,30,0.06);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .sequence {
+    font-size: 26px; line-height: 1.4; letter-spacing: 0.25em;
+    text-align: center; padding: 6px 4px;
+    border-radius: 12px; background: #faf7ff;
+    border: 1px solid #ece1ff; color: #15111c;
+  }
+  .arabic-band {
+    background: #ffe9d6; padding: 2px 4px;
+    border-radius: 6px; color: #8a3b00;
+  }
+  .copy-btn {
+    padding: 4px 10px; font-size: 10px;
+    border-radius: 999px; background: #444; color: #fff;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; border: none;
+  }
+  .copy-btn:hover { background: #666; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div class="title-block">
+      <h1>SEQ14 / CHAOS HYBRID</h1>
+      <span>russian geometry + arabic entropy</span>
+    </div>
+
+    <div class="controls">
+      <button id="add-seq-btn">Add Pin</button>
+      <button id="clear-btn">Clear</button>
+
+      <div class="slider-box">
+        <label for="chaos">Chaos Level</label>
+        <input type="range" id="chaos" min="0" max="100" value="40">
+      </div>
+    </div>
+  </header>
+
+  <section class="board" id="board"></section>
+
+</div>
+
+<script>
+  // Russian geometry
+  const HARD = [..."ПРКСВДТМНГШ"];
+  const SOFT = [..."ФХЖЗЛБ"];
+  const VOWELS = [..."АОУ"];
+  const CANISTER = "Ҩ";
+  const CONSONANTS = [...HARD, ...SOFT];
+
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function genRusCode(chaos) {
+    // More chaos = longer Russian block
+    const len = chaos < 30 ? 3 : chaos < 70 ? 4 : 5;
+
+    let out = "";
+    for (let i = 0; i < len; i++) {
+      if (Math.random() < 0.1 && i === 0) out += CANISTER;
+      else if (Math.random() < 0.2) out += rand(VOWELS);
+      else out += rand(CONSONANTS);
+    }
+    return out;
+  }
+
+  // Arabic chaos generator
+  function randArabicChar(fullChaos) {
+    if (!fullChaos) {
+      // stable Arabic subset
+      const stable = [..."ابتثجحخدذرزسشصضطظعغفقكلمنهوي"];
+      return rand(stable);
+    }
+    // full Unicode Arabic block
+    const code = 0x0600 + Math.floor(Math.random() * (0x06FF - 0x0600 + 1));
+    return String.fromCharCode(code);
+  }
+
+  function genArabicBlock(n, chaos) {
+    let out = "";
+    for (let i = 0; i < n; i++) {
+      out += randArabicChar(chaos > 60);
+    }
+    return out;
+  }
+
+  function genSeq14() {
+    const chaos = Number(document.getElementById("chaos").value);
+
+    const rus = genRusCode(chaos);
+
+    // Arabic distribution changes with chaos
+    const arBandCount = chaos < 50 ? 4 : 5;
+    const arTailCount = 14 - rus.length - arBandCount;
+
+    const arBand = genArabicBlock(arBandCount, chaos);
+    const arTail = genArabicBlock(arTailCount, chaos);
+
+    return {
+      rus, arBand, arTail,
+      seq: rus + arBand + arTail
+    };
+  }
+
+  const board = document.getElementById("board");
+
+  function addPin() {
+    const { rus, arBand, arTail, seq } = genSeq14();
+
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const seqDiv = document.createElement("div");
+    seqDiv.className = "sequence";
+    seqDiv.innerHTML = `${rus}<span class="arabic-band">${arBand}</span>${arTail}`;
+    card.appendChild(seqDiv);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.textContent = "Copy";
+    copyBtn.onclick = () => navigator.clipboard.writeText(seq);
+    card.appendChild(copyBtn);
+
+    board.prepend(card);
+  }
+
+  document.getElementById("add-seq-btn").onclick = addPin;
+  document.getElementById("clear-btn").onclick = () => board.innerHTML = "";
+
+  // Seed
+  for (let i = 0; i < 4; i++) addPin();
+</script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SEQ14 – Pinterest Gunboard Engine</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f6f5f7;
+      color: #222;
+    }
+    .page { max-width: 1200px; margin: 0 auto; padding: 24px 16px 40px; }
+    .header {
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 4px; }
+    .title-block h1 {
+      font-size: 20px; letter-spacing: 0.12em;
+      text-transform: uppercase; margin: 0;
+    }
+    .title-block span {
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.18em; color: #999;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    button {
+      border: none; padding: 8px 16px; border-radius: 999px;
+      background: #111; color: #fff; font-size: 13px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+    }
+    button:hover {
+      background: #222; transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.22);
+    }
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+    .tagline {
+      font-size: 11px; color: #777;
+      text-transform: uppercase; letter-spacing: 0.18em;
+    }
+    .board {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px; margin-top: 12px;
+    }
+    .card {
+      background: #fff; border-radius: 18px; padding: 14px 14px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 10px 20px rgba(15,15,30,0.06);
+      display: flex; flex-direction: column; gap: 10px;
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.9) 0, transparent 55%);
+      pointer-events: none;
+    }
+    .card-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.22em; color: #b2b2b2;
+    }
+    .sequence {
+      font-size: 26px; line-height: 1.4; letter-spacing: 0.25em;
+      text-align: center; padding: 6px 4px;
+      border-radius: 12px; background: #faf7ff;
+      border: 1px solid #ece1ff; color: #15111c;
+    }
+    .arabic-band {
+      background: #ffe9d6;
+      padding: 2px 4px;
+      border-radius: 6px;
+      color: #8a3b00;
+    }
+    .meta-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.16em; color: #999;
+    }
+    .pill {
+      padding: 2px 8px; border-radius: 999px;
+      background: #15111c; color: #fefbff;
+      font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+    .copy-btn {
+      margin-top: 4px; padding: 4px 10px; font-size: 10px;
+      border-radius: 999px; background: #444; color: #fff;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: pointer; border: none;
+    }
+    .copy-btn:hover { background: #666; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div class="title-block">
+      <h1>SEQ14 / GUNBOARD</h1>
+      <span>rus layers + canister + arabic band</span>
+    </div>
+    <div class="controls">
+      <button id="add-seq-btn">Add new pin</button>
+      <button id="clear-btn">Clear board</button>
+      <div class="tagline">ccc / cvc / qcc + arabic</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="board" id="board"></section>
+  </main>
+</div>
+
+<script>
+  // Base alphabets (Layer R0)
+  const HARD = [..."ПРКСВДТМНГШ"];
+  const SOFT = [..."ФХЖЗЛБ"];
+  const VOWELS = [..."АОУ"];
+  const CANISTER = "Ҩ"; // special canister marker
+  const CONSONANTS = [...HARD, ...SOFT];
+
+  function rand(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // Russian code generator (Layer R1): CCC, CVC, QCC
+  function genRusCode() {
+    const t = Math.random();
+    let pattern;
+    if (t < 0.7) pattern = "CCC";      // 70%
+    else if (t < 0.9) pattern = "CVC"; // 20%
+    else pattern = "QCC";              // 10% canister class
+
+    let out = "";
+    for (const ch of pattern) {
+      if (ch === "C") out += rand(CONSONANTS);
+      else if (ch === "V") out += rand(VOWELS);
+      else if (ch === "Q") out += CANISTER;
+    }
+    return out;
+  }
+
+  // Arabic Unicode range block
+  function randArabicChar() {
+    const code = 0x0600 + Math.floor(Math.random() * (0x06FF - 0x0600 + 1));
+    return String.fromCharCode(code);
+  }
+
+  function genArabicBlock(n) {
+    let out = "";
+    for (let i = 0; i < n; i++) out += randArabicChar();
+    return out;
+  }
+
+  // SEQ14 = RUS(3) + AR4 + AR7
+  function genSeq14() {
+    const rus = genRusCode();           // 3 chars by construction
+    const arBand = genArabicBlock(4);   // highlighted segment
+    const arTail = genArabicBlock(7);   // tail
+    const seq = rus + arBand + arTail;  // full 14-glyph sequence
+    return { rus, arBand, arTail, seq };
+  }
+
+  const board = document.getElementById("board");
+
+  function addPin() {
+    const { rus, arBand, arTail, seq } = genSeq14();
+    const index = board.children.length;
+
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const label = document.createElement("div");
+    label.className = "card-label";
+    label.textContent = "PIN " + String(index + 1).padStart(2, "0");
+    card.appendChild(label);
+
+    const seqDiv = document.createElement("div");
+    seqDiv.className = "sequence";
+    seqDiv.innerHTML = `${rus}<span class="arabic-band">${arBand}</span>${arTail}`;
+    card.appendChild(seqDiv);
+
+    const meta = document.createElement("div");
+    meta.className = "meta-row";
+    const isCanister = rus.startsWith(CANISTER);
+    meta.innerHTML =
+      `<div>${rus}${isCanister ? " · CANISTER" : ""}</div>` +
+      `<div>${isCanister ? "QCC LAYER" : "RUS LAYER"}</div>`;
+    card.appendChild(meta);
+
+    const pill = document.createElement("div");
+    pill.className = "pill";
+    pill.textContent = "fictional gun pattern";
+    card.appendChild(pill);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.textContent = "Copy";
+    copyBtn.onclick = () => navigator.clipboard.writeText(seq);
+    card.appendChild(copyBtn);
+
+    board.prepend(card);
+  }
+
+  document.getElementById("add-seq-btn").onclick = addPin;
+  document.getElementById("clear-btn").onclick = () => { board.innerHTML = ""; };
+
+  // Seed with a few pins
+  for (let i = 0; i < 4; i++) addPin();
+</script>
+</body>
+</html>

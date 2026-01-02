@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Universal Glyph Sequence Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #050510;
+      --fg: #f5f5ff;
+      --accent1: #7f5af0;
+      --accent2: #2cb67d;
+      --accent3: #ff7a90;
+      --muted: #94a1b2;
+      --card-bg: rgba(15, 17, 40, 0.96);
+      --border-soft: rgba(148, 161, 178, 0.4);
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #12122a 0, #050510 45%, #000000 100%);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Noto Sans", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    .shell {
+      max-width: 900px;
+      width: 100%;
+      background: linear-gradient(135deg,
+                 rgba(20, 24, 56, 0.98),
+                 rgba(7, 10, 32, 0.98));
+      border-radius: 24px;
+      border: 1px solid var(--border-soft);
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content { position: relative; z-index: 1; }
+
+    .title {
+      font-size: 1.3rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: rgba(200, 205, 235, 0.9);
+      margin-bottom: 18px;
+    }
+
+    .sequence {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      font-size: 2rem;
+      color: #ffffff;
+      text-align: center;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: radial-gradient(circle at 50% 0,
+                 rgba(255, 255, 255, 0.12),
+                 rgba(15, 17, 40, 0.96) 55%);
+      margin-bottom: 14px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .sequence-generated {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      font-size: 1.4rem;
+      color: #ff4d4d;
+      text-align: center;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 77, 77, 0.4);
+      background: rgba(255, 0, 0, 0.08);
+      margin-top: 14px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .gen-button {
+      margin-top: 14px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(127, 90, 240, 0.7);
+      background: rgba(127, 90, 240, 0.2);
+      color: #dcdcff;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .gen-button:hover {
+      background: rgba(127, 90, 240, 0.35);
+      box-shadow: 0 0 12px rgba(127, 90, 240, 0.5);
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: rgba(190, 200, 235, 0.85);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="content">
+      <div class="title">Universal Glyph Sequence Generator</div>
+      <div class="subtitle">
+        Any readable glyph from common Unicode blocks (Windows‑friendly fonts): Latin, Greek, Cyrillic, Hebrew, Arabic, CJK…
+      </div>
+
+      <div id="primary-sequence" class="sequence"></div>
+
+      <button class="gen-button" onclick="generateUniversal()">
+        GENERATE NEW 14‑GLYPH SEQUENCE
+      </button>
+
+      <div id="generated-sequence" class="sequence-generated"></div>
+
+      <div class="note">
+        Generated locally with <code>Math.random()</code>. Mix of multiple Unicode blocks, no guarantees about script balance.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Unicode ranges chosen to be broadly readable with default Windows fonts.
+    const ranges = [
+      [0x0021, 0x007E],  // Basic Latin (printable)
+      [0x00A1, 0x00FF],  // Latin-1 Supplement
+      [0x0370, 0x03FF],  // Greek and Coptic
+      [0x0400, 0x04FF],  // Cyrillic
+      [0x0530, 0x058F],  // Armenian
+      [0x0590, 0x05FF],  // Hebrew
+      [0x0600, 0x06FF],  // Arabic
+      [0x4E00, 0x9FFF]   // CJK Unified Ideographs
+    ];
+
+    function randomFromRanges() {
+      const r = ranges[Math.floor(Math.random() * ranges.length)];
+      const start = r[0];
+      const end = r[1];
+      const code = start + Math.floor(Math.random() * (end - start + 1));
+      return String.fromCharCode(code);
+    }
+
+    function generateUniversal() {
+      const length = 14;
+      let seq = [];
+      for (let i = 0; i < length; i++) {
+        seq.push(randomFromRanges());
+      }
+
+      const out = seq.join("");
+      document.getElementById("primary-sequence").textContent = out;
+      document.getElementById("generated-sequence").textContent = out;
+    }
+
+    generateUniversal();
+  </script>
+
+</body>
+</html>

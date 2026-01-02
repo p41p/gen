@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbolic Sequences – Full Spectrum Display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #050510;
+      --fg: #f5f5ff;
+      --accent1: #7f5af0;
+      --accent2: #2cb67d;
+      --accent3: #ff7a90;
+      --accent4: #f5d742;
+      --muted: #94a1b2;
+      --card-bg: rgba(15, 17, 40, 0.96);
+      --border-soft: rgba(148, 161, 178, 0.4);
+      --glow: 0 0 32px rgba(127, 90, 240, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #12122a 0, #050510 45%, #000000 100%);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Noto Sans", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    .shell {
+      max-width: 1080px;
+      width: 100%;
+      background: linear-gradient(135deg,
+                 rgba(20, 24, 56, 0.98),
+                 rgba(7, 10, 32, 0.98));
+      border-radius: 24px;
+      border: 1px solid var(--border-soft);
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      padding: 28px 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 10% 0, rgba(127, 90, 240, 0.28), transparent 55%),
+        radial-gradient(circle at 90% 100%, rgba(44, 182, 125, 0.3), transparent 55%),
+        radial-gradient(circle at 10% 100%, rgba(245, 215, 66, 0.15), transparent 50%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .title {
+      font-size: 1.3rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(127, 90, 240, 0.7);
+      background: radial-gradient(circle at 0 0, rgba(127, 90, 240, 0.4), transparent 60%);
+      color: var(--accent1);
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent2);
+      box-shadow: 0 0 10px rgba(44, 182, 125, 0.9);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.7fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 780px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card-main {
+      background: linear-gradient(145deg,
+          rgba(3, 5, 22, 0.7),
+          rgba(11, 15, 42, 0.95));
+      border-radius: 20px;
+      border: 1px solid rgba(127, 90, 240, 0.5);
+      box-shadow: 0 0 34px rgba(127, 90, 240, 0.28);
+      padding: 18px 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-main::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0 0, rgba(127, 90, 240, 0.5), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(252, 72, 130, 0.38), transparent 55%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .card-main-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .sequence-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: rgba(209, 213, 245, 0.78);
+      margin-bottom: 6px;
+    }
+
+    .sequence {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.7rem);
+      color: #ffffff;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: radial-gradient(circle at 50% 0,
+                 rgba(255, 255, 255, 0.12),
+                 rgba(15, 17, 40, 0.96) 55%);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 0 26px rgba(127, 90, 240, 0.7);
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .sequence::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .sequence::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sequence::-webkit-scrollbar-thumb {
+      background: rgba(148, 161, 178, 0.6);
+      border-radius: 999px;
+    }
+
+    .sequence.secondary {
+      font-size: clamp(1.0rem, 0.9rem + 0.4vw, 1.25rem);
+      text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.25),
+        0 0 20px rgba(44, 182, 125, 0.6);
+      border-color: rgba(44, 182, 125, 0.6);
+      background: radial-gradient(circle at 50% 0,
+                 rgba(44, 182, 125, 0.2),
+                 rgba(10, 13, 35, 0.96) 55%);
+      margin-bottom: 0;
+    }
+
+    .sequence-note {
+      font-size: 0.76rem;
+      color: rgba(222, 228, 255, 0.78);
+      margin-top: 10px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .sequence-note span {
+      color: var(--accent2);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+
+    .card-side {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 161, 178, 0.5);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+    }
+
+    .side-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .side-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 0.78rem;
+      color: rgba(214, 220, 247, 0.9);
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(148, 161, 178, 0.85);
+    }
+
+    .meta-value {
+      font-weight: 500;
+    }
+
+    .meta-value strong {
+      color: var(--accent1);
+      font-weight: 600;
+    }
+
+    .meta-value span {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      font-size: 0.73rem;
+      color: rgba(180, 192, 228, 0.85);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer-left {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .footer-tag {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: rgba(148, 161, 178, 0.9);
+    }
+
+    .footer-tag span {
+      color: var(--accent3);
+      font-weight: 600;
+    }
+
+    .footer-right {
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    .footer-right strong {
+      color: var(--accent1);
+      font-weight: 600;
+    }
+
+    .mono {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="content">
+      <header>
+        <div class="title">Symbolic sequence register</div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          FULL SPECTRUM · 14‑GLYPH STRINGS
+        </div>
+      </header>
+
+      <div class="grid">
+        <!-- Main sequence display -->
+        <div class="card-main">
+          <div class="card-main-inner">
+            <div class="sequence-label">Primary sequence</div>
+            <div class="sequence">
+              ЖФЮ龍عᚠشЯЫقШЭЛБГ
+            </div>
+
+            <div class="sequence-label" style="margin-top: 12px;">Secondary sequence</div>
+            <div class="sequence secondary">
+              ШقЖ龍ᚠЮعБЭЯФГ
+            </div>
+
+            <div class="sequence-note">
+              <span>Note:</span> Each glyph is a separate functional unit. Keep this file as a visual registry and reference anchor.
+            </div>
+          </div>
+        </div>
+
+        <!-- Side information / meta -->
+        <div class="card-side">
+          <div class="side-title">Sequence meta</div>
+
+          <div class="side-meta">
+            <div class="meta-item">
+              <div class="meta-label">Primary length</div>
+              <div class="meta-value mono">
+                <strong>14</strong> glyphs
+              </div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Secondary length</div>
+              <div class="meta-value mono">
+                <span>11</span> glyphs
+              </div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Character sets</div>
+              <div class="meta-value">
+                Cyrillic, CJK, Arabic, Runic hybrid
+              </div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Usage</div>
+              <div class="meta-value">
+                Symbolic machine / opcode stream
+              </div>
+            </div>
+          </div>
+
+          <div class="side-title" style="margin-top: 10px;">Copy‑ready forms</div>
+          <div style="font-size: 0.78rem; color: rgba(214, 220, 247, 0.9);">
+            <div style="margin-bottom: 4px;">
+              <span class="meta-label">Primary:</span>
+              <span class="mono">ЖФЮ龍عᚠشЯЫقШЭЛБГ</span>
+            </div>
+            <div>
+              <span class="meta-label">Secondary:</span>
+              <span class="mono">ШقЖ龍ᚠЮعБЭЯФГ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="footer-left">
+          <div class="footer-tag">Scope: <span>full spectrum</span></div>
+          <div class="footer-tag">Mode: <span>read‑only registry</span></div>
+        </div>
+        <div class="footer-right">
+          <div>Save this file locally to preserve the sequences.</div>
+          <div>Editable as plain HTML · <strong>Stand‑alone artifact</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

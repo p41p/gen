@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symbolic Sequences – Full Spectrum Display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #050510;
+      --fg: #f5f5ff;
+      --accent1: #7f5af0;
+      --accent2: #2cb67d;
+      --accent3: #ff7a90;
+      --accent4: #f5d742;
+      --muted: #94a1b2;
+      --card-bg: rgba(15, 17, 40, 0.96);
+      --border-soft: rgba(148, 161, 178, 0.4);
+      --glow: 0 0 32px rgba(127, 90, 240, 0.6);
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #12122a 0, #050510 45%, #000000 100%);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Noto Sans", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    .shell {
+      max-width: 1080px;
+      width: 100%;
+      background: linear-gradient(135deg,
+                 rgba(20, 24, 56, 0.98),
+                 rgba(7, 10, 32, 0.98));
+      border-radius: 24px;
+      border: 1px solid var(--border-soft);
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 10% 0, rgba(127, 90, 240, 0.28), transparent 55%),
+        radial-gradient(circle at 90% 100%, rgba(44, 182, 125, 0.3), transparent 55%),
+        radial-gradient(circle at 10% 100%, rgba(245, 215, 66, 0.15), transparent 50%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .content { position: relative; z-index: 1; }
+
+    .title {
+      font-size: 1.3rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(127, 90, 240, 0.7);
+      background: radial-gradient(circle at 0 0, rgba(127, 90, 240, 0.4), transparent 60%);
+      color: var(--accent1);
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent2);
+      box-shadow: 0 0 10px rgba(44, 182, 125, 0.9);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.7fr);
+      gap: 20px;
+    }
+
+    .card-main {
+      background: linear-gradient(145deg,
+          rgba(3, 5, 22, 0.7),
+          rgba(11, 15, 42, 0.95));
+      border-radius: 20px;
+      border: 1px solid rgba(127, 90, 240, 0.5);
+      box-shadow: 0 0 34px rgba(127, 90, 240, 0.28);
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sequence {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      font-size: 1.6rem;
+      color: #ffffff;
+      text-align: center;
+      padding: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: radial-gradient(circle at 50% 0,
+                 rgba(255, 255, 255, 0.12),
+                 rgba(15, 17, 40, 0.96) 55%);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 0 26px rgba(127, 90, 240, 0.7);
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .sequence.secondary {
+      font-size: 1.2rem;
+      text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.25),
+        0 0 20px rgba(44, 182, 125, 0.6);
+      border-color: rgba(44, 182, 125, 0.6);
+      background: radial-gradient(circle at 50% 0,
+                 rgba(44, 182, 125, 0.2),
+                 rgba(10, 13, 35, 0.96) 55%);
+    }
+
+    .sequence-generated {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      font-size: 1rem;
+      color: #ff4d4d;
+      text-align: center;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 77, 77, 0.4);
+      background: rgba(255, 0, 0, 0.08);
+      margin-top: 14px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .gen-button {
+      margin-top: 14px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(127, 90, 240, 0.7);
+      background: rgba(127, 90, 240, 0.2);
+      color: #dcdcff;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .gen-button:hover {
+      background: rgba(127, 90, 240, 0.35);
+      box-shadow: 0 0 12px rgba(127, 90, 240, 0.5);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="content">
+      <header>
+        <div class="title">Symbolic sequence register</div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          FULL SPECTRUM · 14‑GLYPH STRINGS
+        </div>
+      </header>
+
+      <div class="grid">
+        <div class="card-main">
+          <div class="sequence-label">Primary sequence</div>
+          <div id="primary-sequence" class="sequence"></div>
+
+          <div class="sequence-label" style="margin-top: 12px;">Secondary sequence</div>
+          <div class="sequence secondary">
+            ШقЖ龍ᚠЮعБЭЯФГ
+          </div>
+
+          <button class="gen-button" onclick="generateSequence()">
+            GENERATE NEW SEQUENCE
+          </button>
+
+          <div id="generated-sequence" class="sequence-generated"></div>
+        </div>
+
+        <div class="card-side">
+          <div class="side-title">Sequence meta</div>
+          <div class="side-meta">
+            <div class="meta-item">
+              <div class="meta-label">Primary length</div>
+              <div class="meta-value mono"><strong>14</strong> glyphs</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Secondary length</div>
+              <div class="meta-value mono"><span>11</span> glyphs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const arabic = "ابتثجحخدذرزسشصضطظعغفقكلمنهوي";
+    const basePrimary = "ЖФЮ龍عᚠشЯЫقШЭЛБГ".split("");
+
+    function randomCJK() {
+      const code = 0x4E00 + Math.floor(Math.random() * (0x9FFF - 0x4E00));
+      return String.fromCharCode(code);
+    }
+
+    function randomArabic() {
+      return arabic[Math.floor(Math.random() * arabic.length)];
+    }
+
+    function buildPrimary() {
+      let seq = [...basePrimary];
+
+      // choose 4 random positions to replace
+      let positions = [];
+      while (positions.length < 4) {
+        let p = Math.floor(Math.random() * seq.length);
+        if (!positions.includes(p)) positions.push(p);
+      }
+
+      // 1 CJK
+      seq[positions[0]] = randomCJK();
+
+      // 3 Arabic
+      seq[positions[1]] = randomArabic();
+      seq[positions[2]] = randomArabic();
+      seq[positions[3]] = randomArabic();
+
+      document.getElementById("primary-sequence").textContent = seq.join("");
+    }
+
+    function generateSequence() {
+      const alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+      let out = "";
+      for (let i = 0; i < 10; i++) {
+        out += alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+      document.getElementById("generated-sequence").textContent = out;
+    }
+
+    buildPrimary();
+  </script>
+
+</body>
+</html>
