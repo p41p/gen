@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SEQ14 / GNU Steel Engine</title>
+<style>
+  :root {
+    --bg-main: #050608;
+    --bg-panel: #0c1016;
+    --bg-card: #101722;
+    --bg-card-alt: #111b27;
+    --accent: #58e694;
+    --accent-strong: #00ffa8;
+    --accent-soft: #37b6ff;
+    --accent-warn: #ff5c7a;
+    --text-main: #f5f7ff;
+    --text-muted: #8c96aa;
+    --text-soft: #5e6a7c;
+    --border-soft: #202a38;
+    --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.85);
+    --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top left, #111827 0, #02030a 52%, #000000 100%);
+    color: var(--text-main);
+    font-family: var(--font-main);
+  }
+
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 18px 40px;
+  }
+
+  header.header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .title-block h1 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .title-block span {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .gnu-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid #1a2533;
+    background: radial-gradient(circle at 0 0, #1b2939 0, #06090e 55%);
+    color: var(--text-muted);
+  }
+
+  .gnu-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent-strong);
+    box-shadow: 0 0 12px rgba(0, 255, 168, 0.9);
+  }
+
+  .control-panel {
+    width: 100%;
+    margin-bottom: 18px;
+    background: radial-gradient(circle at top right, #1b2432 0, #080b11 50%, #04050a 100%);
+    border-radius: 18px;
+    padding: 12px 14px 10px;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+    display: grid;
+    grid-template-columns: minmax(220px, 3fr) minmax(220px, 3fr) minmax(220px, 3fr);
+    gap: 10px;
+  }
+
+  .control-group {
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    padding-right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .control-group:last-child {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .control-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--text-soft);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  .slider-value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #05080e;
+    border: 1px solid #223045;
+    color: var(--accent-soft);
+  }
+
+  select, input[type="text"] {
+    width: 100%;
+    background: #05080e;
+    border-radius: 8px;
+    border: 1px solid #253347;
+    color: var(--text-main);
+    padding: 5px 8px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    outline: none;
+  }
+
+  select:focus, input[type="text"]:focus {
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 1px rgba(0, 255, 168, 0.25);
+  }
+
+  input[type="text"]::placeholder {
+    color: #465163;
+  }
+
+  .small-note {
+    font-size: 10px;
+    color: var(--text-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  button {
+    border: none;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #26c07c, #0e9f5f);
+    color: #02040a;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8);
+    transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.12s ease;
+  }
+
+  button:hover {
+    background: linear-gradient(135deg, #35e08f, #12c573);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.9);
+  }
+
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
+  }
+
+  .button-secondary {
+    background: linear-gradient(135deg, #171f30, #111827);
+    color: var(--text-muted);
+  }
+
+  .button-secondary:hover {
+    background: linear-gradient(135deg, #1f2a3e, #151d2c);
+  }
+
+  .status-bar {
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .status-pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #202b3d;
+    background: rgba(6, 11, 18, 0.7);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .status-pill strong {
+    color: var(--accent-soft);
+    font-weight: 500;
+  }
+
+  main {
+    margin-top: 18px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: radial-gradient(circle at top left, #1a2633 0, #0c1018 45%, #05070c 100%);
+    border-radius: 16px;
+    padding: 11px 12px 10px;
+    border: 1px solid #202a38;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(88, 230, 148, 0.08) 0, transparent 60%);
+    pointer-events: none;
+  }
+
+  .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+  }
+
+  .card-index {
+    font-family: var(--font-mono);
+    color: var(--accent-soft);
+  }
+
+  .card-tag {
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid #253346;
+    background: rgba(8, 12, 20, 0.9);
+    font-size: 9px;
+  }
+
+  .sequence {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    line-height: 1.35;
+    letter-spacing: 0.28em;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: radial-gradient(circle at center, #131b28 0, #05070b 70%);
+    border: 1px solid #29384b;
+    color: var(--text-main);
+    position: relative;
+    z-index: 1;
+  }
+
+  .sequence span.arabic-static {
+    color: var(--accent-strong);
+    text-shadow: 0 0 12px rgba(0, 255, 168, 0.8);
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .meta-left {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .pill {
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid #263549;
+    background: #050810;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  .pill.canister {
+    border-color: var(--accent-warn);
+    color: #ff9bb0;
+  }
+
+  .pill.chaos-high {
+    border-color: var(--accent-soft);
+    color: var(--accent-soft);
+  }
+
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2px;
+  }
+
+  .copy-btn {
+    padding: 3px 10px;
+    font-size: 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1a2434, #101725);
+    color: var(--text-muted);
+    border: 1px solid #283345;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: var(--font-main);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.75);
+    transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.12s ease, color 0.12s ease;
+  }
+
+  .copy-btn:hover {
+    background: linear-gradient(135deg, #243148, #151e30);
+    color: var(--accent-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.9);
+  }
+
+  .copy-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
+  }
+
+  @media (max-width: 900px) {
+    .control-panel {
+      grid-template-columns: minmax(220px, 1fr);
+    }
+    .control-group {
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 10px;
+      margin-bottom: 4px;
+    }
+    .control-group:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+  }
+
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div class="title-block">
+      <h1>SEQ14 / GNU STEEL</h1>
+      <span>russian masks + static arabic autogen + chaos</span>
+    </div>
+    <div class="gnu-tag">
+      <span class="gnu-dot"></span>
+      <span>gnu / symbolic ordnance engine</span>
+    </div>
+  </header>
+
+  <section class="control-panel">
+    <!-- Chaos + sequence controls -->
+    <div class="control-group">
+      <div class="control-title">chaos &amp; generation</div>
+      <div class="control-row">
+        <label for="chaos">Chaos</label>
+        <input type="range" id="chaos" min="2" max="10" value="5">
+        <span id="chaosValue" class="slider-value">rus prefix: 5</span>
+      </div>
+      <div class="small-note">
+        controls russian prefix length (2–10). higher chaos increases Ҩ chance and slot looseness.
+      </div>
+      <div class="button-row">
+        <button id="add-seq-btn">Add Pin</button>
+        <button id="clear-btn" class="button-secondary">Clear Board</button>
+      </div>
+      <div class="status-bar" id="statusBar">
+        <div class="status-pill">
+          MASK <strong>CCC</strong>
+        </div>
+        <div class="status-pill">
+          ARABIC <strong>۞</strong>
+        </div>
+        <div class="status-pill">
+          CANISTER <strong>mask + chaos</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mask selection -->
+    <div class="control-group">
+      <div class="control-title">russian mask</div>
+      <label for="maskSelect">Predefined firearm mask</label>
+      <select id="maskSelect">
+        <option value="CCC">CCC · classic cluster</option>
+        <option value="CVC">CVC · vowel core</option>
+        <option value="CCV">CCV · bureau tail</option>
+        <option value="QCC">QCC · canister lead</option>
+        <option value="C?C">C?C · chaos middle</option>
+        <option value="C??C">C??C · dual chaos</option>
+        <option value="CCCC">CCCC · industrial block</option>
+        <option value="CCVC">CCVC · mixed run</option>
+        <option value="CVCV">CVCV · alternating</option>
+        <option value="QCCC">QCCC · canister block</option>
+      </select>
+
+      <label for="customMask">Custom mask (override)</label>
+      <input id="customMask" type="text"
+             placeholder="C V Q ? pattern, e.g. C?VC?">
+      <div class="small-note">
+        accepted tokens: C (consonant), V (vowel), Q (Ҩ), ? (chaos).  
+        if non-empty, this overrides the dropdown mask.
+      </div>
+    </div>
+
+    <!-- Arabic selector -->
+    <div class="control-group">
+      <div class="control-title">arabic autogen symbol</div>
+      <label for="arabicSelect">Static glyph</label>
+      <select id="arabicSelect">
+        <option value="۞">۞ · radial machine core</option>
+        <option value="۩">۩ · ornate seal</option>
+        <option value="۝">۝ · soft cycle</option>
+        <option value="ۜ">ۜ · subtle marker</option>
+        <option value="۟">۟ · minimal tick</option>
+        <option value="ع">ع · curved consonant</option>
+        <option value="ش">ش · spiked consonant</option>
+        <option value="م">م · neutral mass</option>
+      </select>
+      <div class="small-note">
+        used exactly once per sequence as the autogen marker between russian prefix and filler.
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section class="board" id="board"></section>
+  </main>
+</div>
+
+<script>
+  // --- base alphabets ---
+  const HARD = [..."ПРКСВДТМНГШ"];
+  const SOFT = [..."ФХЖЗЛБ"];
+  const VOWELS = [..."АОУ"];
+  const CONSONANTS = [...HARD, ...SOFT];
+  const CANISTER = "Ҩ";
+  const RUS_BASE = [...CONSONANTS, ...VOWELS];
+
+  function rand(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function getChaos() {
+    const v = Number(document.getElementById("chaos").value);
+    return clamp(v, 2, 10);
+  }
+
+  function getActiveMaskRaw() {
+    const custom = document.getElementById("customMask").value.trim().toUpperCase();
+    const allowed = new Set(["C", "V", "Q", "?"]);
+    if (custom.length > 0) {
+      const filtered = [...custom].filter(ch => allowed.has(ch));
+      if (filtered.length > 0) return filtered.join("");
+    }
+    return document.getElementById("maskSelect").value;
+  }
+
+  function updateStatusBar(mask, arabic) {
+    const statusBar = document.getElementById("statusBar");
+    statusBar.innerHTML = `
+      <div class="status-pill">
+        MASK <strong>${mask}</strong>
+      </div>
+      <div class="status-pill">
+        ARABIC <strong>${arabic}</strong>
+      </div>
+      <div class="status-pill">
+        CANISTER <strong>mask + chaos</strong>
+      </div>
+    `;
+  }
+
+  function genRusFromMask(mask, length, chaosLevel) {
+    const chars = [];
+    const baseChaosChance = 0.12;
+    const chaosExtra = (chaosLevel - 2) / 8; // 0..1
+    const chaosFactor = baseChaosChance + chaosExtra * 0.25; // up to ~0.37
+    const highChaos = chaosLevel >= 8;
+
+    for (let i = 0; i < length; i++) {
+      const maskChar = mask[i % mask.length];
+
+      // mask tokens have priority
+      if (maskChar === "C") {
+        chars.push(rand(CONSONANTS));
+        continue;
+      }
+      if (maskChar === "V") {
+        chars.push(rand(VOWELS));
+        continue;
+      }
+      if (maskChar === "Q") {
+        chars.push(CANISTER);
+        continue;
+      }
+
+      // chaos slot "?"
+      let chosen = null;
+      if (maskChar === "?") {
+        // chaos slot always random, weighted by chaos level
+        const r = Math.random();
+        if (highChaos && r < 0.20) {
+          chosen = CANISTER;
+        } else if (r < 0.65) {
+          chosen = rand(CONSONANTS);
+        } else if (r < 0.92) {
+          chosen = rand(VOWELS);
+        } else {
+          chosen = rand(RUS_BASE);
+        }
+        chars.push(chosen);
+        continue;
+      }
+
+      // fallback: unknown mask char -> behave like chaos slot
+      const r = Math.random();
+      if (highChaos && r < 0.18) {
+        chosen = CANISTER;
+      } else if (r < 0.7) {
+        chosen = rand(CONSONANTS);
+      } else if (r < 0.93) {
+        chosen = rand(VOWELS);
+      } else {
+        chosen = rand(RUS_BASE);
+      }
+      chars.push(chosen);
+    }
+
+    // extra chaos-driven canister override (dual-origin logic)
+    if (chaosLevel > 7) {
+      const extraChance = 0.15 + (chaosLevel - 7) * 0.03; // small bump
+      for (let i = 0; i < chars.length; i++) {
+        if (Math.random() < extraChance) {
+          chars[i] = CANISTER;
+        }
+      }
+    }
+
+    return chars.join("");
+  }
+
+  function genSeq14() {
+    const chaosPrefixLen = getChaos();  // prefix length 2–10
+    const activeMask = getActiveMaskRaw();
+    const arabicGlyph = document.getElementById("arabicSelect").value;
+
+    // total russian length = 13, 1 glyph is arabic
+    const totalRusLen = 13;
+    const prefixLen = clamp(chaosPrefixLen, 2, 10);
+    const fillerLen = Math.max(0, totalRusLen - prefixLen);
+
+    const rusPrefix = genRusFromMask(activeMask, prefixLen, chaosPrefixLen);
+    const rusFiller = genRusFromMask(activeMask, fillerLen, chaosPrefixLen);
+
+    const fullSeq = rusPrefix + arabicGlyph + rusFiller;
+
+    const hasCanister = fullSeq.includes(CANISTER);
+
+    updateStatusBar(activeMask, arabicGlyph);
+
+    return {
+      rusPrefix,
+      rusFiller,
+      arabicGlyph,
+      seq: fullSeq,
+      mask: activeMask,
+      chaos: chaosPrefixLen,
+      hasCanister
+    };
+  }
+
+  const board = document.getElementById("board");
+  const chaosSlider = document.getElementById("chaos");
+  const chaosValue = document.getElementById("chaosValue");
+
+  chaosSlider.addEventListener("input", () => {
+    const v = getChaos();
+    chaosValue.textContent = `rus prefix: ${v}`;
+  });
+
+  function addPin() {
+    const { rusPrefix, rusFiller, arabicGlyph, seq, mask, chaos, hasCanister } = genSeq14();
+    const index = board.children.length + 1;
+
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "card-header-row";
+    headerRow.innerHTML = `
+      <div class="card-index">PIN ${String(index).padStart(2, "0")}</div>
+      <div class="card-tag">gnu / steel pattern</div>
+    `;
+    card.appendChild(headerRow);
+
+    const seqDiv = document.createElement("div");
+    seqDiv.className = "sequence";
+    seqDiv.innerHTML = `${rusPrefix}<span class="arabic-static">${arabicGlyph}</span>${rusFiller}`;
+    card.appendChild(seqDiv);
+
+    const meta = document.createElement("div");
+    meta.className = "meta-row";
+
+    const leftMeta = document.createElement("div");
+    leftMeta.className = "meta-left";
+    const maskPill = document.createElement("div");
+    maskPill.className = "pill";
+    maskPill.textContent = `MASK ${mask}`;
+    leftMeta.appendChild(maskPill);
+
+    if (hasCanister) {
+      const canPill = document.createElement("div");
+      canPill.className = "pill canister";
+      canPill.textContent = "Ҩ DETECTED";
+      leftMeta.appendChild(canPill);
+    }
+
+    meta.appendChild(leftMeta);
+
+    const rightMeta = document.createElement("div");
+    const chaosPill = document.createElement("div");
+    chaosPill.className = "pill" + (chaos > 7 ? " chaos-high" : "");
+    chaosPill.textContent = `CHAOS ${chaos}`;
+    rightMeta.appendChild(chaosPill);
+    meta.appendChild(rightMeta);
+
+    card.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.textContent = "COPY SEQ14";
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(seq);
+    };
+    actions.appendChild(copyBtn);
+    card.appendChild(actions);
+
+    board.prepend(card);
+  }
+
+  document.getElementById("add-seq-btn").onclick = addPin;
+  document.getElementById("clear-btn").onclick = () => {
+    board.innerHTML = "";
+  };
+
+  // seed a few pins
+  for (let i = 0; i < 4; i++) addPin();
+</script>
+</body>
+</html>
